@@ -8,6 +8,7 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/soarinferret/mcc/internal/config"
+	"github.com/soarinferret/mcc/internal/meshcentral"
 )
 
 var profileCmd = &cobra.Command{
@@ -63,10 +64,59 @@ var profileAddCmd = &cobra.Command{
 		username, _ := cmd.Flags().GetString("username")
 		password, _ := cmd.Flags().GetString("password")
 		isDefault, _ := cmd.Flags().GetBool("default")
+		dontGenerateToken, _ := cmd.Flags().GetBool("dont-generate-token")
 
+		// if password is empty, ask for it
+		if password == "" {
+			password, _ = pterm.DefaultInteractiveTextInput.WithMask("*").Show("Enter your password:")
+		}
+
+		if !dontGenerateToken {
+			// Generate a login token if not using username/password
+			err := error(nil)
+			username, password, err = meshcentral.GenerateLoginToken(server, username, password)
+			if err != nil {
+				pExit("Error generating login token: ", err)
+			}
+		} else {
+			// Warn about using username/password directly
+			pterm.Warning.Println("Using username and password directly is less secure. Consider using a login token instead.")
+		}
 		p := config.AddProfile(name, isDefault, server, username, password)
 
 		printProfileTable([]config.Profile{*p})
+	},
+}
+
+var profileTokenConvertCmd = &cobra.Command{
+	Use:     "convert-token",
+	Aliases: []string{"ct"},
+	Short:   "Convert a username/password profile to a login token profile",
+	Long:    ``,
+	Run: func(cmd *cobra.Command, args []string) {
+		p, _ := cmd.Flags().GetString("profile")
+
+		// Get the profile
+		profile, err := config.GetProfile(p)
+		if err != nil {
+			pExit("Error getting profile: ", err)
+		}
+
+		// Generate a login token
+		username, password, err := meshcentral.GenerateLoginToken(profile.Server, profile.Username, profile.Password)
+		if err != nil {
+			pExit("Error generating login token: ", err)
+		}
+
+		// Update the profile with the new token
+		profile.Username = username
+		profile.Password = password
+		err = config.UpdateProfile(*profile)
+		if err != nil {
+			pExit("Error updating profile: ", err)
+		}
+
+		pterm.Info.Println("Converted profile to use login token successfully.")
 	},
 }
 
@@ -77,17 +127,19 @@ func init() {
 	profileCmd.AddCommand(profileListCmd)
 	profileCmd.AddCommand(profileAddCmd)
 	profileCmd.AddCommand(profileRmCmd)
-
+	profileCmd.AddCommand(profileTokenConvertCmd)
 
 	profileAddCmd.Flags().StringP("name", "n", "", "The name of the profile to add")
 	profileAddCmd.Flags().BoolP("default", "d", false, "Set this profile as the default profile")
 	profileAddCmd.Flags().StringP("server", "s", "", "Mesh Central Server URL")
 	profileAddCmd.Flags().StringP("username", "u", "", "Mesh Central Username")
 	profileAddCmd.Flags().StringP("password", "p", "", "Mesh Central Password")
+	profileAddCmd.Flags().BoolP("dont-generate-token", "", false, "Don't replace username and password with a login token (WARNING! Less secure!)")
+	profileTokenConvertCmd.Flags().StringP("profile", "p", "", "The profile to convert to a login token")
 	profileAddCmd.MarkFlagRequired("name")
 	profileAddCmd.MarkFlagRequired("server")
 	profileAddCmd.MarkFlagRequired("username")
-	profileAddCmd.MarkFlagRequired("password")
+	//profileAddCmd.MarkFlagRequired("password")
 
 }
 

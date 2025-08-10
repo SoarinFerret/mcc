@@ -20,7 +20,7 @@ func CreateConfig(server string, username string, password string) error {
 	viper.Set("profiles", []map[string]interface{}{
 		{
 			"name":     "default",
-			"server": 	server,
+			"server":   server,
 			"username": username,
 			"password": password,
 		},
@@ -40,7 +40,6 @@ func CreateConfig(server string, username string, password string) error {
 	return viper.WriteConfig()
 }
 
-
 // LoadConfig loads the configuration
 func LoadConfig() error {
 	viper.SetConfigType(configType)
@@ -56,7 +55,7 @@ func LoadConfig() error {
 	viper.SetDefault("profiles", []map[string]interface{}{
 		{
 			"name":     "default",
-			"server": 	"",
+			"server":   "",
 			"username": "",
 			"password": "",
 		},

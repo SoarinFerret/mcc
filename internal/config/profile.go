@@ -96,6 +96,38 @@ func RemoveProfile(name string) {
 	viper.WriteConfig()
 }
 
+func GetProfile(name string) (*Profile, error) {
+	// get profiles from config
+	var profiles []Profile
+	viper.UnmarshalKey("profiles", &profiles)
+
+	// find profile by name
+	for _, p := range profiles {
+		if p.Name == name {
+			return &p, nil
+		}
+	}
+
+	return nil, &ProfileNotFoundError{Name: name}
+}
+
+func UpdateProfile(profile Profile) error {
+	// get profiles from config
+	var profiles []Profile
+	viper.UnmarshalKey("profiles", &profiles)
+
+	// update profile
+	for i, p := range profiles {
+		if p.Name == profile.Name {
+			profiles[i] = profile
+			viper.Set("profiles", profiles)
+			return viper.WriteConfig()
+		}
+	}
+
+	return &ProfileNotFoundError{Name: profile.Name}
+}
+
 // profile not found error definition
 type ProfileNotFoundError struct {
 	Name string

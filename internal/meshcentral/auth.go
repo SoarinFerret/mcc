@@ -138,9 +138,9 @@ func onServerWebSocket(conn *websocket.Conn) {
 		// devices.go
 		case "nodes":
 			handleNodesCommand(command)
-			// newtoken
-			//case "createLoginToken":
-			//	handleNewTokenCommand(command)
+		// newtoken
+		case "createLoginToken":
+			handleNewTokenCommand(command)
 		}
 
 	}
