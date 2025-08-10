@@ -3,10 +3,11 @@ package cmd
 import (
 	"os"
 
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"github.com/pterm/pterm"
 	"github.com/soarinferret/mcc/internal/config"
+	"github.com/soarinferret/mcc/internal/meshcentral"
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 // rootCmd represents the base command when called without any subcommands
@@ -79,6 +80,13 @@ func initializeSetup() {
 		server, _ := pterm.DefaultInteractiveTextInput.Show("Enter the MeshCentral server hostname or IP (ex: mesh.example.com)")
 		username, _ := pterm.DefaultInteractiveTextInput.Show("Enter the MeshCentral username")
 		password, _ := pterm.DefaultInteractiveTextInput.WithMask("*").Show("Enter the MeshCentral password")
+
+		// get the login token
+		username, password, err = meshcentral.GenerateLoginToken(server, username, password)
+		if err != nil {
+			pterm.Error.Println("Error getting login token:", err)
+			os.Exit(1)
+		}
 
 		err := config.CreateConfig(server, username, password)
 		if err != nil {
