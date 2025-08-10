@@ -2,25 +2,30 @@ package meshcentral
 
 import (
 	"crypto/tls"
-	"strings"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/gorilla/websocket"
 	"github.com/soarinferret/mcc/internal/config"
 )
 
-func StartSocket() {
-	p := config.GetDefaultProfile()
+func SetLoginInfo(username, password, server string) {
+	settings.Username = username
+	settings.Password = password
+	settings.ServerURL = "wss://" + server + "/meshrelay.ashx"
+}
 
-	settings.Username = p.Username
-	settings.Password = p.Password
-	settings.ServerURL = "wss://" + p.Server + "/meshrelay.ashx"
+func StartSocket() {
+	if settings.Username == "" || settings.Password == "" || settings.ServerURL == "" {
+		p := config.GetDefaultProfile()
+		SetLoginInfo(p.Username, p.Password, p.Server)
+	}
 
 	// Start by requesting a login token, this is needed because of 2FA and check that we have correct credentials from the start
 	var options *url.URL
@@ -34,13 +39,14 @@ func StartSocket() {
 	}
 
 	xtoken := ""
-	if settings.EmailToken {
+	// mfa stuff
+	/*if settings.EmailToken {
 		xtoken = "**email**"
 	} else if settings.SMSToken {
 		xtoken = "**sms**"
 	} else if settings.Token != "" {
 		xtoken = settings.Token
-	}
+	}*/
 
 	headers := http.Header{}
 	if settings.ServerID == "" {
@@ -132,6 +138,9 @@ func onServerWebSocket(conn *websocket.Conn) {
 		// devices.go
 		case "nodes":
 			handleNodesCommand(command)
+			// newtoken
+			//case "createLoginToken":
+			//	handleNewTokenCommand(command)
 		}
 
 	}
@@ -141,7 +150,8 @@ func handleCloseCommand(command map[string]interface{}) {
 	if command["cause"] == "noauth" {
 		switch command["msg"] {
 		case "tokenrequired":
-			if command["email2fasent"] == true {
+			fmt.Println("MFA not supported, please use a login token instead - see https://ylianst.github.io/MeshCentral/meshcentral/tokens/")
+			/*if command["email2fasent"] == true {
 				fmt.Println("Login token email sent.")
 			} else if command["email2fa"] == true && command["sms2fa"] == true {
 				fmt.Println("Login token required, use --token [token], or --emailtoken, --smstoken get a token.")
@@ -151,7 +161,7 @@ func handleCloseCommand(command map[string]interface{}) {
 				fmt.Println("Login token required, use --token [token], or --emailtoken get a token.")
 			} else {
 				fmt.Println("Login token required, use --token [token].")
-			}
+			}*/
 		case "badtlscert":
 			fmt.Println("Invalid TLS certificate detected.")
 		case "badargs":
@@ -174,9 +184,6 @@ func handleAuthCookieCommand(command map[string]interface{}) {
 		settings.RenewCookieTimer = time.AfterFunc(10*time.Minute, func() {
 			settings.WebChannel.WriteMessage(websocket.TextMessage, []byte(`{"action":"authcookie"}`))
 		})
-		//startRouterEx()
-
-
 
 	} else {
 		settings.ACookie = command["cookie"].(string)
@@ -185,19 +192,16 @@ func handleAuthCookieCommand(command map[string]interface{}) {
 }
 
 func handleServerAuthCommand(command map[string]interface{}) {
-	// Switch to using HTTPS TLS certificate for authentication
 	settings.ServerID = ""
-	settings.ServerHttpsHash = settings.MeshServerTlsHash
-	settings.MeshServerTlsHash = ""
 
 	xtoken := ""
-	if settings.EmailToken {
+	/*if settings.EmailToken {
 		xtoken = "**email**"
 	} else if settings.SMSToken {
 		xtoken = "**sms**"
 	} else if settings.Token != "" {
 		xtoken = settings.Token
-	}
+	}*/
 
 	auth := ""
 	if settings.AuthCookie != "" {
