@@ -78,9 +78,6 @@ var profileAddCmd = &cobra.Command{
 			if err != nil {
 				pExit("Error generating login token: ", err)
 			}
-		} else {
-			// Warn about using username/password directly
-			pterm.Warning.Println("Using username and password directly is less secure. Consider using a login token instead.")
 		}
 		p := config.AddProfile(name, isDefault, server, username, password)
 
@@ -134,7 +131,7 @@ func init() {
 	profileAddCmd.Flags().StringP("server", "s", "", "Mesh Central Server URL")
 	profileAddCmd.Flags().StringP("username", "u", "", "Mesh Central Username")
 	profileAddCmd.Flags().StringP("password", "p", "", "Mesh Central Password")
-	profileAddCmd.Flags().BoolP("dont-generate-token", "", false, "Don't replace username and password with a login token (WARNING! Less secure!)")
+	profileAddCmd.Flags().BoolP("dont-generate-token", "", false, "Don't replace username and password with a login token")
 	profileTokenConvertCmd.Flags().StringP("profile", "p", "", "The profile to convert to a login token")
 	profileAddCmd.MarkFlagRequired("name")
 	profileAddCmd.MarkFlagRequired("server")
