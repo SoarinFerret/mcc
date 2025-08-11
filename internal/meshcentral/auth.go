@@ -91,11 +91,12 @@ func StartSocket() {
 		fmt.Println("Connected to server.")
 	}
 
+	settings.WebChannel = make(chan struct{})
 	settings.WebSocket = conn
 	go onServerWebSocket(conn)
 
-	// Keep the main function running
-	//select {}
+	// Wait for authentication before returning
+	<-settings.WebChannel
 }
 
 func StopSocket() {
@@ -104,7 +105,7 @@ func StopSocket() {
 }
 
 func onServerWebSocket(conn *websocket.Conn) {
-	settings.WebChannel = conn
+	//settings.WebChannel = conn
 
 	for {
 		_, message, err := conn.ReadMessage()
@@ -182,9 +183,9 @@ func handleAuthCookieCommand(command map[string]interface{}) {
 		settings.ACookie = command["cookie"].(string)
 		settings.RCookie = command["rcookie"].(string)
 		settings.RenewCookieTimer = time.AfterFunc(10*time.Minute, func() {
-			settings.WebChannel.WriteMessage(websocket.TextMessage, []byte(`{"action":"authcookie"}`))
+			settings.WebSocket.WriteMessage(websocket.TextMessage, []byte(`{"action":"authcookie"}`))
 		})
-
+		close(settings.WebChannel)
 	} else {
 		settings.ACookie = command["cookie"].(string)
 		settings.RCookie = command["rcookie"].(string)
@@ -220,18 +221,5 @@ func handleServerAuthCommand(command map[string]interface{}) {
 		auth += "}"
 	}
 
-	settings.WebChannel.WriteMessage(websocket.TextMessage, []byte(auth))
-}
-
-// another hacky thing
-func sendAuthCookie() {
-	settings.WebSocket.WriteMessage(websocket.TextMessage, []byte(`{"action":"authcookie"}`))
-
-	// when settings.ACookie is set, return
-	for {
-		if settings.ACookie != "" {
-			break
-		}
-		time.Sleep(100 * time.Millisecond)
-	}
+	settings.WebSocket.WriteMessage(websocket.TextMessage, []byte(auth))
 }

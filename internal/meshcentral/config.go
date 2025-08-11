@@ -36,7 +36,7 @@ type Settings struct {
 	RemoteTarget     string
 	RemoteNodeID     string
 	WebSocket        *websocket.Conn
-	WebChannel       *websocket.Conn
+	WebChannel       chan struct{}
 	ACookie          string
 	RCookie          string
 	RenewCookieTimer *time.Timer
