@@ -89,8 +89,8 @@ func StartSocket() {
 	settings.WebSocket = conn
 	go onServerWebSocket(conn)
 
-	// Keep the main function running
-	//select {}
+	// Wait for authentication before returning
+	<-settings.WebChannel
 }
 
 func StopSocket() {
