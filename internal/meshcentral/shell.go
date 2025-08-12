@@ -33,9 +33,6 @@ func randomHex() (string, error) {
 
 // test setting up websocket
 func StartShell(protocol int) {
-	// wait for server to be authenticated
-	<-settings.WebChannel
-
 	id, _ := randomHex()
 
 	settings.WebSocket.WriteMessage(websocket.TextMessage, []byte(fmt.Sprintf(

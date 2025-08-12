@@ -28,9 +28,6 @@ func StartRouter(ready chan struct{}) {
 	settings.LocalPort = listener.Addr().(*net.TCPAddr).Port
 	defer listener.Close()
 
-	// wait for server to be authenticated
-	<-settings.WebChannel
-
 	close(ready)
 	fmt.Printf("Redirecting local port %d to remote port %d.\n", listener.Addr().(*net.TCPAddr).Port, settings.RemotePort)
 	fmt.Println("Press ctrl-c to exit.")
