@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"errors"
-	"regexp"
 	"fmt"
+	"regexp"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -16,7 +16,7 @@ var routeCmd = &cobra.Command{
 	Use:     "route",
 	Aliases: []string{"r"},
 	Short:   "Forward TCP traffic to specified Node",
-	Long: ``,
+	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
 
 		bindAddress, _ := cmd.Flags().GetString("bind-address")

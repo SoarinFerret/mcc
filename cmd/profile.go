@@ -64,6 +64,7 @@ var profileAddCmd = &cobra.Command{
 		username, _ := cmd.Flags().GetString("username")
 		password, _ := cmd.Flags().GetString("password")
 		isDefault, _ := cmd.Flags().GetBool("default")
+		token, _ := cmd.Flags().GetString("token")
 		dontGenerateToken, _ := cmd.Flags().GetBool("dont-generate-token")
 
 		// if password is empty, ask for it
@@ -72,6 +73,10 @@ var profileAddCmd = &cobra.Command{
 		}
 
 		if !dontGenerateToken {
+			if token != "" {
+				meshcentral.SetMfaToken(token)
+			}
+
 			// Generate a login token if not using username/password
 			err := error(nil)
 			username, password, err = meshcentral.GenerateLoginToken(server, username, password)
@@ -92,11 +97,16 @@ var profileTokenConvertCmd = &cobra.Command{
 	Long:    ``,
 	Run: func(cmd *cobra.Command, args []string) {
 		p, _ := cmd.Flags().GetString("profile")
+		token, _ := cmd.Flags().GetString("token")
 
 		// Get the profile
 		profile, err := config.GetProfile(p)
 		if err != nil {
 			pExit("Error getting profile: ", err)
+		}
+
+		if token != "" {
+			meshcentral.SetMfaToken(token)
 		}
 
 		// Generate a login token
@@ -132,7 +142,9 @@ func init() {
 	profileAddCmd.Flags().StringP("username", "u", "", "Mesh Central Username")
 	profileAddCmd.Flags().StringP("password", "p", "", "Mesh Central Password")
 	profileAddCmd.Flags().BoolP("dont-generate-token", "", false, "Don't replace username and password with a login token")
+	profileAddCmd.Flags().StringP("token", "t", "", "MFA Token for Mesh Central")
 	profileTokenConvertCmd.Flags().StringP("profile", "p", "", "The profile to convert to a login token")
+	profileTokenConvertCmd.Flags().StringP("token", "t", "", "MFA Token for Mesh Central")
 	profileAddCmd.MarkFlagRequired("name")
 	profileAddCmd.MarkFlagRequired("server")
 	profileAddCmd.MarkFlagRequired("username")

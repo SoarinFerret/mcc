@@ -21,6 +21,10 @@ func SetLoginInfo(username, password, server string) {
 	settings.ServerURL = "wss://" + server + "/meshrelay.ashx"
 }
 
+func SetMfaToken(token string) {
+	settings.MfaToken = token
+}
+
 func StartSocket() {
 	if settings.Username == "" || settings.Password == "" || settings.ServerURL == "" {
 		p := config.GetDefaultProfile()
@@ -44,9 +48,10 @@ func StartSocket() {
 		xtoken = "**email**"
 	} else if settings.SMSToken {
 		xtoken = "**sms**"
-	} else if settings.Token != "" {
-		xtoken = settings.Token
-	}*/
+	} else */
+	if settings.MfaToken != "" {
+		xtoken = settings.MfaToken
+	}
 
 	headers := http.Header{}
 	if settings.ServerID == "" {
@@ -67,14 +72,9 @@ func StartSocket() {
 		headers.Add("x-meshauth", "*")
 	}
 
-	/*if settings.LoginKey != "" {
-		options.RawQuery += fmt.Sprintf("&key=%s", settings.LoginKey)
-	}*/
-
 	// replace meshrelay.ashx with control.ashx
 	urlStr := strings.Replace(settings.ServerURL, "meshrelay.ashx", "control.ashx", 1)
 
-	//conn, _, err := websocket.DefaultDialer.Dial(urlStr, headers)
 	dialer := websocket.Dialer{
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
@@ -151,7 +151,8 @@ func handleCloseCommand(command map[string]interface{}) {
 	if command["cause"] == "noauth" {
 		switch command["msg"] {
 		case "tokenrequired":
-			fmt.Println("MFA not supported, please use a login token instead - see https://ylianst.github.io/MeshCentral/meshcentral/tokens/")
+			fmt.Println("MFA code required, use --token [token].\nOtherwise, please use a login token instead - see https://ylianst.github.io/MeshCentral/meshcentral/tokens/")
+			// eventually support interactive MFA?
 			/*if command["email2fasent"] == true {
 				fmt.Println("Login token email sent.")
 			} else if command["email2fa"] == true && command["sms2fa"] == true {

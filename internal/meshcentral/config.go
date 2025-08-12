@@ -45,9 +45,7 @@ type Settings struct {
 	TokenQueryState  int
 	TokenResponse    NewTokenResponse
 	debug            bool
-
-	// mfa settings
-	//Token          string
+	MfaToken         string
 	//EmailToken     bool
 	//SMSToken       bool
 }
