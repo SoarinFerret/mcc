@@ -15,16 +15,6 @@ import (
 	"github.com/soarinferret/mcc/internal/config"
 )
 
-func SetLoginInfo(username, password, server string) {
-	settings.Username = username
-	settings.Password = password
-	settings.ServerURL = "wss://" + server + "/meshrelay.ashx"
-}
-
-func SetMfaToken(token string) {
-	settings.MfaToken = token
-}
-
 func StartSocket() {
 	if settings.Username == "" || settings.Password == "" || settings.ServerURL == "" {
 		p := config.GetDefaultProfile()
