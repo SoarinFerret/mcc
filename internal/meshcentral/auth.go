@@ -43,7 +43,7 @@ func StartSocket() {
 	}
 
 	xtoken := ""
-	// mfa stuff
+	// interactive mfa stuff
 	/*if settings.EmailToken {
 		xtoken = "**email**"
 	} else if settings.SMSToken {
@@ -105,8 +105,6 @@ func StopSocket() {
 }
 
 func onServerWebSocket(conn *websocket.Conn) {
-	//settings.WebChannel = conn
-
 	for {
 		_, message, err := conn.ReadMessage()
 		if err != nil {
@@ -186,7 +184,7 @@ func handleAuthCookieCommand(command map[string]interface{}) {
 		settings.RenewCookieTimer = time.AfterFunc(10*time.Minute, func() {
 			settings.WebSocket.WriteMessage(websocket.TextMessage, []byte(`{"action":"authcookie"}`))
 		})
-		close(settings.WebChannel)
+		close(settings.WebChannel) // let the main loop know that we are authenticated
 	} else {
 		settings.ACookie = command["cookie"].(string)
 		settings.RCookie = command["rcookie"].(string)
@@ -201,9 +199,10 @@ func handleServerAuthCommand(command map[string]interface{}) {
 		xtoken = "**email**"
 	} else if settings.SMSToken {
 		xtoken = "**sms**"
-	} else if settings.Token != "" {
-		xtoken = settings.Token
-	}*/
+	} else */
+	if settings.MfaToken != "" {
+		xtoken = settings.MfaToken
+	}
 
 	auth := ""
 	if settings.AuthCookie != "" {

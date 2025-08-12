@@ -53,12 +53,19 @@ type Settings struct {
 var settings Settings
 
 func ApplySettings(remoteNodeId string, remotePort int, localPort int, remoteTarget string, debug bool) {
-	//settings.ServerURL = serverUrl
-	//settings.Username = username
-	//settings.Password = password
 	settings.RemoteNodeID = remoteNodeId
 	settings.RemotePort = remotePort
 	settings.LocalPort = localPort
 	settings.RemoteTarget = remoteTarget
 	settings.debug = debug
+}
+
+func SetLoginInfo(username, password, server string) {
+	settings.Username = username
+	settings.Password = password
+	settings.ServerURL = "wss://" + server + "/meshrelay.ashx"
+}
+
+func SetMfaToken(token string) {
+	settings.MfaToken = token
 }
